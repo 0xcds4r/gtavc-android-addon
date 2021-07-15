@@ -1,3 +1,4 @@
 # gtavc-android-addon
-author: vk.com/artemkodisarov
-community: vk.com/mobile.samp
+author: https://vk.com/artemkodisarov
+
+community: https://vk.com/mobile.samp
