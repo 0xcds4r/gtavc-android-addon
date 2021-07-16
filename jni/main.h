@@ -6,15 +6,13 @@
 #include <ucontext.h>
 #include <pthread.h>
 
-#include <netdb.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include <cstdlib>
 #include <string>
 #include <vector>
 #include <list>
 #include <unistd.h>
+
+#include "utils.h"
 
 // debug
 #define VC_DEBUG
@@ -37,11 +35,14 @@ extern uintptr_t g_pImmEmu;
 #define LOG_CAT_TAG "vcmp" // logcat -s vcmp
 #endif
 
+#ifndef LOG_CAT_TAG_TOUCH
+#define LOG_CAT_TAG_TOUCH "vcmp-touch" // logcat -s vcmp-touch
+#endif
+
 // storage
 #ifndef DATA_STORAGE
 #define DATA_STORAGE "/storage/emulated/0/Android/data/com.rockstargames.gtavc/files/"
 #endif 
 
-typedef void capture_callback();
 
-#include "utils.h"
+

@@ -25,7 +25,8 @@ struct SCRIPT_COMMAND
 	char Params[MAX_SCRIPT_VARS];
 };
 
-void InitScripting();
 int ScriptCommand(const SCRIPT_COMMAND* pScriptCommand, ...);
 
 const SCRIPT_COMMAND clear_player_wanted_level = { 0x0110, "i" };
+const SCRIPT_COMMAND create_car                = { 0x00A5, "ifffv" };
+const SCRIPT_COMMAND store_player_pos          = { 0x0054, "ivvv" };

@@ -8,7 +8,8 @@ uintptr_t *pdwParamVars[18];
 uint8_t ExecuteScriptBuf()
 {
 	gst->dwScriptIP = (uintptr_t)ScriptBuf;
-	(( void (*)(GAME_SCRIPT_THREAD*))(VC(0x106054+1)))(gst);
+	
+    (( void (*)(GAME_SCRIPT_THREAD*))(VC(0x106054+1)))(gst);
 
 	return gst->condResult;
 }
@@ -96,8 +97,17 @@ int ScriptCommand(const SCRIPT_COMMAND *pScriptCommand, ...)
 	return result;
 }
 
+extern utils::storage  client_storage;
+extern utils::log      client_log;
+extern utils::library  arm_library;
+extern utils::arm      arm_tools;
+
 void InitScripting()
 {
+    #ifdef VC_DEBUG
+    client_log.push(LOG_CAT_TAG, "Initializing scripting..");
+    #endif
+
 	gst = new GAME_SCRIPT_THREAD;
 	memset(gst, 0, sizeof(GAME_SCRIPT_THREAD));
 }
