@@ -1,4 +1,5 @@
 #include "main.h"
+#include "VC/CCommon.h"
 
 extern utils::storage  client_storage;
 extern utils::log      client_log;
@@ -25,8 +26,10 @@ enum eTouchType
 void InitScripting();
 
 bool bDuck = false;
-
+bool bUseFiveCam = false;
+int iProcCameraMode = 0;
 void processWeapon();
+
 void (*TouchEvent)(eTouchType, int, int, int);
 void TouchEvent_hook(eTouchType type, int num, int posX, int posY)
 {
@@ -50,11 +53,15 @@ void TouchEvent_hook(eTouchType type, int num, int posX, int posY)
                 #ifdef VC_DEBUG
                 client_log.push(LOG_CAT_TAG, "count fun: %d", i++);   
                 #endif
+                
+                bUseFiveCam ^= true;
+                
+                // ScriptCommand(&toggle_player_controllable, 1, 0);
 
                 // VehicleCheat
-                ((int(*)(int))(VC(0x155CC0 + 1)))(130);
+                // ((int(*)(int))(VC(0x155CC0 + 1)))(130);
 
-                processWeapon();
+                // processWeapon();
 
                 bDuck = !bDuck;
             }
@@ -138,6 +145,12 @@ void processScriptingInit()
     }
 }
 
+void processFPV()
+{
+    // .data:003A57D4 00 00 00 3F                          fMobilePedChaseDistance DCD 0x3F000000  ; DATA XREF: LOAD:0003BD84?o
+    // .data:003A57D8 00 00 00 3F                          fMobileCarChaseDistance DCD 0x3F000000  ; DATA XREF: LOAD:0001AA
+}
+
 void (*CRunningScript_Process)(uintptr_t thiz);
 void CRunningScript_Process_hook(uintptr_t thiz)
 {
@@ -150,7 +163,8 @@ void CRunningScript_Process_hook(uintptr_t thiz)
     else
     {
         processScriptingInit();
-        processPlayerDuckMod();
+        // processPlayerDuckMod();
+        processFPV();
     }
 }
 
@@ -190,6 +204,114 @@ void CWorld__Remove_hook(uintptr_t entity)
     return CWorld__Remove(entity);
 }
 
+void skipSplashScreen()
+{
+    arm_tools.unprotect(VC(0x58A77C));
+    arm_tools.unprotect(VC(0x58A780));
+    *(uint8_t*)(VC(0x58A77C)) = 2;  // legalScreenState
+    *(uint8_t*)(VC(0x58A780)) = 1;  // shownLegalScreen
+}
+
+void forcedStartGame()
+{
+    // CMenuManager::DoSettingsBeforeStartingAGame
+    ((int(*)())(VC(0x145F14 + 1)))();
+
+    // 58A198 ?? ?? ?? ??                          dword_58A198
+    arm_tools.unprotect(VC(0x58A198));
+    *(uint32_t*)(VC(0x58A198)) = 0;    
+
+    // 58A19D ??                                   byte_58A19D
+    arm_tools.unprotect(VC(0x58A19D));
+    *(uint32_t*)(VC(0x58A19D)) = 0;  
+
+    // more ??  
+}
+
+uint16_t* (*CText__Get)(uintptr_t thiz, const char* text);
+uint16_t* CText__Get_hook(uintptr_t thiz, const char* text)
+{
+    uintptr_t dwRetAddr = 0;
+	__asm__ volatile ("mov %0, lr" : "=r" (dwRetAddr));
+	dwRetAddr -= g_pGTAVC;
+
+    // skip splash screen
+	if(strcmp(text, "SPLASH") == 0) { // 'Tap for continue' screen and etc.
+        skipSplashScreen();
+    }
+
+    // skip main menu
+    if(strcmp(text, "FEN_STA") == 0) {
+        #ifdef SKIP_MAIN_MENU
+        forcedStartGame(); // BETA
+        #endif
+    }
+
+	return CText__Get(thiz, text);
+}
+
+void (*CTimer__StartUserPause)();
+void CTimer__StartUserPause_hook()
+{
+    uintptr_t dwRetAddr = 0;
+	__asm__ volatile ("mov %0, lr" : "=r" (dwRetAddr));
+	dwRetAddr -= g_pGTAVC;
+    // client_log.push(LOG_CAT_TAG, "CTimer__StartUserPause ret addr: 0x%X", dwRetAddr);
+
+    // 0x2139AF - radar map
+    // 0x145639 - menu
+
+    // changing the action of the pressed back button
+    if(dwRetAddr != 0x2139AF) 
+    {
+        // 0x6F5794 - GRadarMap
+        if(*(uintptr_t*)(VC(0x6F5794))) 
+        {
+            #ifdef ENABLE_BP_FORCE_EXIT
+                // forced exit
+                exit(0);
+            #endif
+        }
+    }
+
+    // 595DB6                                      ; CTimer::m_UserPause
+    *(uint8_t*)(VC(0x595DB6)) = 1;
+}
+
+void (*CTimer__EndUserPause)();
+void CTimer__EndUserPause_hook()
+{
+    // 595DB6                                      ; CTimer::m_UserPause
+    *(uint8_t*)(VC(0x595DB6)) = 0;
+}
+
+void (*CCam__Init)(CCam* pCam);
+void CCam__Init_hook(CCam* pCam)
+{
+    pCam->Init();
+}
+
+void (*CCam__Process)(CCam* pCam);
+void CCam__Process_hook(CCam* pCam)
+{
+    if(bUseFiveCam) {
+        // pCam->Mode = CCam::MODE_SYPHON;
+    }
+
+    // todo: rewrite process
+
+    // client_log.push(LOG_CAT_TAG, "mode: %d", thiz->Mode);
+
+    CCam__Process(pCam);
+}
+
+void (*CCamera__Init)(CCamera* pCamera);
+void CCamera__Init_hook(CCamera* pCamera)
+{
+    CCamera__Init(pCamera);
+    pCamera->Init2();
+}
+
 void init_hooks()
 {
     #ifdef VC_DEBUG
@@ -206,4 +328,12 @@ void init_hooks()
     arm_tools.installHook(VC(0x13C964), (uintptr_t)CFileLoader__SetRelatedModelInfoCB_hook, (uintptr_t*)&CFileLoader__SetRelatedModelInfoCB);
     arm_tools.installHook(VC(0x2AF6A8), (uintptr_t)RpClumpRemoveAtomic_hook, (uintptr_t*)&RpClumpRemoveAtomic);
     arm_tools.installHook(VC(0x176258), (uintptr_t)CWorld__Remove_hook, (uintptr_t*)&CWorld__Remove);
+
+    arm_tools.installHook(VC(0x216C40), (uintptr_t)CText__Get_hook, (uintptr_t*)&CText__Get);
+    arm_tools.installHook(VC(0x174F70), (uintptr_t)CTimer__StartUserPause_hook, (uintptr_t*)&CTimer__StartUserPause);
+    arm_tools.installHook(VC(0x174F80), (uintptr_t)CTimer__EndUserPause_hook, (uintptr_t*)&CTimer__EndUserPause);
+
+    arm_tools.installHook(VC(0x12B5C8), (uintptr_t)CCamera__Init_hook, (uintptr_t*)&CCamera__Init);
+    arm_tools.installHook(VC(0x11F284), (uintptr_t)CCam__Init_hook, (uintptr_t*)&CCam__Init);
+    arm_tools.installHook(VC(0x133068), (uintptr_t)CCam__Process_hook, (uintptr_t*)&CCam__Process);
 }

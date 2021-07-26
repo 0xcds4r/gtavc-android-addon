@@ -14,6 +14,10 @@
 
 #include "utils.h"
 
+// BETA stuff
+#define SKIP_MAIN_MENU
+// #define ENABLE_BP_FORCE_EXIT
+
 // debug
 #define VC_DEBUG
 
@@ -37,6 +41,10 @@ extern uintptr_t g_pImmEmu;
 
 #ifndef LOG_CAT_TAG_TOUCH
 #define LOG_CAT_TAG_TOUCH "vcmp-touch" // logcat -s vcmp-touch
+#endif
+
+#ifndef LOG_CAT_TAG_CRASH
+#define LOG_CAT_TAG_CRASH "vcmp-crash" // logcat -s vcmp-crash
 #endif
 
 // storage

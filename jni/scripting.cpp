@@ -8,10 +8,8 @@ uintptr_t *pdwParamVars[18];
 uint8_t ExecuteScriptBuf()
 {
 	gst->dwScriptIP = (uintptr_t)ScriptBuf;
-	
-    (( void (*)(GAME_SCRIPT_THREAD*))(VC(0x106054+1)))(gst);
-
-	return gst->condResult;
+    (( void (*)(GAME_SCRIPT_THREAD*))(VC(0x106054 + 1)))(gst);
+	return gst->bJumpFlag;
 }
 
 int ScriptCommand(const SCRIPT_COMMAND *pScriptCommand, ...)
