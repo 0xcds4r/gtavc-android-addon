@@ -1,6 +1,7 @@
 # gtavc-android-addon
 author: https://vk.com/artemkodisarov (cds4r / Artem Lebedev) 
-Telegram: t.me/iokagumeth
+
+Telegram: https://t.me/iokagumeth
 
 community: https://vk.com/mobile.samp
 
