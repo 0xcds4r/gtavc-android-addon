@@ -1,9 +1,9 @@
 # gtavc-android-addon
-author: https://vk.com/artemkodisarov (cds4r / Artem Lebedev) 
 
-Telegram: https://t.me/iokagumeth
+Telegram: https://t.me/iokagumeth (cds4r / Artem Lebedev) 
 
-community: https://vk.com/mobile.samp
+VK community: https://vk.com/mobile.samp
+Telegram community: https://t.me/mobile_samp
 
 GTA: VC version: 1.07
 
