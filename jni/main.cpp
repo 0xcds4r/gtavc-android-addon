@@ -3,6 +3,7 @@
 #include "scripting.h"
 #include "crashhandler.h"
 #include "client_handler.h"
+#include "gui/gui.h"
 #include <dlfcn.h>
 
 JavaVM *javaVM = NULL;
@@ -11,6 +12,11 @@ utils::storage  client_storage;
 utils::log      client_log;
 utils::library  arm_library;
 utils::arm      arm_tools;
+
+// graphics
+gui::wrapper    gui_wrapper;
+gui::drawer     gui_drawer;
+gui::events     gui_events;
 
 uintptr_t g_pVCMP = 0;
 uintptr_t g_pGTAVC = 0;

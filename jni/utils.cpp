@@ -214,4 +214,27 @@ void utils::arm::injectCode(uintptr_t addr, uintptr_t func, int reg)
     utils::arm::writeMemory(addr, (uintptr_t)injectCode, 12);
 }
 
+void utils::arm::MOVW(uintptr_t addr, int word, int reg) 
+{
+    utils::arm::unprotect(addr);
+    utils::arm::unprotect(addr + 4);
+
+    *(uint8_t*)(addr + 2) = ((uint8_t*)&word)[0]; // lobyte
+    auto hibyte = ((uint8_t*)&word)[1];
+    *(uint8_t*)(addr) = 0x40 + (hibyte / 0x10);
+
+    if (hibyte - ((hibyte / 0x10) * 0x10) < 0x8) 
+    {
+        *(uint8_t*)(addr + 1) = 0xF2;
+        *(uint8_t*)(addr + 3) = (hibyte - ((hibyte / 0x10) * 0x10)) * 0x10 + reg;
+    }
+    else 
+    {
+        *(uint8_t*)(addr + 1) = 0xF6;
+        *(uint8_t*)(addr + 3) = ((hibyte - ((hibyte / 0x10) * 0x10)) - 0x8) * 0x10 + reg;
+    }
+
+    cacheflush(addr, addr + 4, 0);
+}
+
 // -----------------------------------------------------------------------

@@ -58,5 +58,6 @@ namespace utils
         void installMethodHook(uintptr_t addr, uintptr_t func);
         void injectCode(uintptr_t addr, uintptr_t func, int reg);
         void installPLTHook(uintptr_t addr, uintptr_t func, uintptr_t *orig);
+        void MOVW(uintptr_t addr, int word, int reg);
     };
 };

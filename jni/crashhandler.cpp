@@ -161,12 +161,12 @@ void crashdump::printSymbols(void* pc, void* lr)
 
 	if (dladdr(pc, &info_pc) != 0)
 	{
-		client_log.push(LOG_CAT_TAG, "> %s", info_pc.dli_sname);
+		client_log.push(LOG_CAT_TAG_CRASH, "> %s", info_pc.dli_sname);
 	}
 
 	if (dladdr(lr, &info_lr) != 0)
 	{
-		client_log.push(LOG_CAT_TAG, "> %s", info_lr.dli_sname);
+		client_log.push(LOG_CAT_TAG_CRASH, "> %s", info_lr.dli_sname);
 	}
 }
 
